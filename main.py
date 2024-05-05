@@ -21,9 +21,6 @@ def RSA_decryption():
 # customtkinter.set_default_color_theme("dark-blue")
 
 
-# AES irreducible polynomial
-# P(x)= x^8 + x^4 + x^3 + x + 1 = 100011011
-
 # add/sub = A + B mod p
 # multiplication A * B mod P(x)
 # inversion A * A^-1 = 1 mod P(x) use my_eea()

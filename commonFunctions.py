@@ -85,7 +85,7 @@ def multiply(A, B):
   return C
 
 # mult then mod
-def mod(A, P):
+def mod(A):
   result = A
   while len(result) >= len(P):
     left = add(result[:len(P)], P)
@@ -131,6 +131,16 @@ inverseAESSBox = [
 [0xA0,0xE0,0x3B,0x4D,0xAE,0x2A,0xF5,0xB0,0xC8,0xEB,0xBB,0x3C,0x83,0x53,0x99,0x61],
 [0x17,0x2B,0x04,0x7E,0xBA,0x77,0xD6,0x26,0xE1,0x69,0x14,0x63,0x55,0x21,0x0C,0x7D]]
 
+# AES irreducible polynomial
+# P(x)= x^8 + x^4 + x^3 + x + 1 = 100011011
+P = '100011011'
+
+inverseMatrix = [
+0x0E,0x0B,0x0D,0x09,
+0x09,0x0E,0x0B,0x0D,
+0x0D,0x09,0x0E,0x0B,
+0x0B,0x0D,0x09,0x0E]
+
 # KeySchedule() is the same for encryption and decryption
 # So this is left for Oumar who is doing AES encryption
 
@@ -138,7 +148,16 @@ inverseAESSBox = [
 # So this is left for Oumar who is doing AES encryption
 
 def InvMixCol(cipher):
-  
+  c = list(cipher.split(" "))
+  b = []
+  for i in range(0,4):
+    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[0])),mod(multiply(c[i],inverseMatrix[1]))),mod(multiply(c[i],inverseMatrix[2]))),mod(multiply(c[i],inverseMatrix[3])))
+  for i in range(4,8):
+    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[4])),mod(multiply(c[i],inverseMatrix[5]))),mod(multiply(c[i],inverseMatrix[6]))),mod(multiply(c[i],inverseMatrix[7])))
+  for i in range(8,12):
+    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[8])),mod(multiply(c[i],inverseMatrix[9]))),mod(multiply(c[i],inverseMatrix[10]))),mod(multiply(c[i],inverseMatrix[11])))
+  for i in range(12,16):
+    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[12])),mod(multiply(c[i],inverseMatrix[13]))),mod(multiply(c[i],inverseMatrix[14]))),mod(multiply(c[i],inverseMatrix[15])))
   return
 # B0   0E 0B 0D 09   C0
 # B1 = 09 0E 0B 0D * C1
