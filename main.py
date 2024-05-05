@@ -15,6 +15,7 @@ except ModuleNotFoundError:
 def RSA_encryption():
     return
 
+
 def RSA_decryption():
     return
 
