@@ -137,7 +137,7 @@ inverseAESSBox = [
 # KeyAddition() XOR flips bits right back shouldnt need to change the function at all
 # So this is left for Oumar who is doing AES encryption
 
-def InvMixCol():
+def InvMixCol(cipher):
 
   return
 # B0   0E 0B 0D 09   C0
@@ -147,7 +147,7 @@ def InvMixCol():
 # B₀ = 0E*C₀ + 0B*C₁ + 01*C₁₀ + 01*C₁₅
 # Additions in the vector–matrix multiplication are bitwise XORs.
 
-def InvShiftRow():
+def InvShiftRows(cipher):
 
   return
 # need to reverse all the indexes swap
@@ -156,7 +156,12 @@ def InvShiftRow():
 # [2 6 10 14] to    [10 14 2 6] right shift 2
 # [3 7 11 15] to    [7 11 15 3] right shift 3
 
-def InvByteSub(cipher,key):
-  
-  return
+def InvByteSub(cipher):
+  result = ""
+  for c in cipher.split(" "):
+    xy = hex(int(c,2))
+    x = int(xy[2],16)
+    y = int(xy[3],16)
+    result += f'{inverseAESSBox[x][y]:08b}' + " "
+  return result
 # apply each byte to inverseAESSBox

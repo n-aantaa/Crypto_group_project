@@ -1,6 +1,7 @@
 # import customtkinter
 import sys
 import logging
+import math
 
 try:
     from commonFunctions import *
