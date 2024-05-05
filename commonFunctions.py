@@ -138,7 +138,7 @@ inverseAESSBox = [
 # So this is left for Oumar who is doing AES encryption
 
 def InvMixCol(cipher):
-
+  
   return
 # B0   0E 0B 0D 09   C0
 # B1 = 09 0E 0B 0D * C1
@@ -148,8 +148,24 @@ def InvMixCol(cipher):
 # Additions in the vector–matrix multiplication are bitwise XORs.
 
 def InvShiftRows(cipher):
-
-  return
+  l = list(cipher.split(" "))
+  l.insert(4,l[7]) #insert pretty much right shifts once
+  del l[8] # delete the original l[7] which is now l[8]
+  l.insert(8,l[11]) # right shift twice
+  l.insert(8,l[11])
+  del l[12] # delete values shifted past row 3
+  del l[12]
+  l.insert(12,l[15]) # right shift 3 times
+  l.insert(12,l[15])
+  l.insert(12,l[15])
+  del l[16] # delete values shifter past row 4
+  del l[16]
+  del l[16]
+  result = ""
+  for i in l:
+    result += l[i] + " "
+  result = result.strip() # gets rid of trailing space
+  return result
 # need to reverse all the indexes swap
 # [0 4 8 12] to     [0 4 8 12] no change
 # [1 5 9 13] to     [13 1 5 9] right shift 1
@@ -163,5 +179,6 @@ def InvByteSub(cipher):
     x = int(xy[2],16)
     y = int(xy[3],16)
     result += f'{inverseAESSBox[x][y]:08b}' + " "
+  result = result.strip() # gets rid of trailing space
   return result
 # apply each byte to inverseAESSBox
