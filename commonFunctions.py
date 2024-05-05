@@ -203,3 +203,6 @@ def InvByteSub(cipher):
 # apply each byte to inverseAESSBox
   return r0
 
+
+  return r0
+
