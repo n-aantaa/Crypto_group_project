@@ -125,36 +125,25 @@ def RSA_decryption():
 # So first round of AES doesnt do invMixCol
 
 # compute Key Schedule first then use them in reverse order
-# keyAddition() XOR flips bits right back shouldnt need to change the function at all
-# MixCol()
-# B0   0E 0B 0D 09   C0
-# B1 = 09 0E 0B 0D * C1
-# B2   0D 09 0E 0B   C2
-# B3   0B 0D 09 0E   C3
-#
-# Additions in the vector–matrix multiplication are bitwise XORs.
-# ShiftRow() need to reverse all the indexes swap
-# [0 4 8 12] to     [0 4 8 12] no change
-# [1 5 9 13] to     [13 1 5 9] right shift 1
-# [2 6 10 14] to    [10 14 2 6] right shift 2
-# [3 7 11 15] to    [7 11 15 3] right shift 3
 
 def AES_decryption(cipher, key):
-    # keySchedule = KeySchedule(key)
-    # keySchedule.reverse() # could also just loop thru backwards
-    # for i in len(keyShedule): # keySchedule length is the # of rounds +1
-    #   if(i==0): # first decryption round doesn't MixCol()
-    #       cipher = KeyAddition(cipher, keySchedule[i])
-        #     cipher = InvShiftRows(cipher)
-        #     cipher = InvByteSub(cipher)
-        # if(i == len(keyShedule)): # last key shedule added
-        #     cipher = KeyAddition(cipher, keySchedule[i])
-        #     return cipher
-        # cipher = KeyAddition(cipher, keySchedule[i])
-        # cipher = InvMixCol(cipher)
-        # cipher = InvShiftRows(cipher)
-        # cipher = InvByteSub(cipher)
-        return # temporary return
+    # if cipher is text convert it to binary string
+    cipher = " ".join(format(ord(c),"b") for c in cipher)
+    keySchedule = KeySchedule(key) # should return an array of each subkey
+    keySchedule.reverse() # could also just loop thru backwards
+    for i in len(keyShedule)-1: # keySchedule length is the # of rounds +1
+      if(i==0): # first decryption round doesn't MixCol()
+          cipher = KeyAddition(cipher, keySchedule[i])
+          cipher = InvShiftRows(cipher)
+          cipher = InvByteSub(cipher)
+      cipher = KeyAddition(cipher, keySchedule[i])
+      cipher = InvMixCol(cipher)
+      cipher = InvShiftRows(cipher)
+      cipher = InvByteSub(cipher)
+    cipher = KeyAddition(cipher, keySchedule[len(keyShedule)-1])
+    # convert cipher back to text
+    cipher = "".join(chr(int(c,2)) for c in cipher.split(" "))
+    return cipher
 
 
 # root = customtkinter.CTk()
