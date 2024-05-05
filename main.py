@@ -22,12 +22,13 @@ root.geometry("1024x1024")
 
 
 def project_menu():
-    label = customtkinter.CTkLabel(master=frame, text="Crypto Group Project", font=("Helvetica", 24))
-    label.pack(pady=20, padx=30)
-    button1 = customtkinter.CTkButton(master=frame, text="AES", font=("Helvetica", 24), command=AES_menu)
-    button1.pack(pady=20, padx=20)
-    button2 = customtkinter.CTkButton(master=frame, text="RSA", font=("Helvetica", 24), command=RSA_menu)
-    button2.pack(pady=20, padx=20)
+    # label = customtkinter.CTkLabel(master=frame, text="Crypto Group Project", font=("Helvetica", 24))
+    # label.pack(pady=20, padx=30)
+    # button1 = customtkinter.CTkButton(master=frame, text="AES", font=("Helvetica", 24), command=AES_menu)
+    # button1.pack(pady=20, padx=20)
+    # button2 = customtkinter.CTkButton(master=frame, text="RSA", font=("Helvetica", 24), command=RSA_menu)
+    # button2.pack(pady=20, padx=20)
+    return 1
 
 def AES_menu():
     # Functionality for AES menu
@@ -35,10 +36,11 @@ def AES_menu():
 
 def RSA_menu():
     # Functionality for RSA menu
-    button1 = customtkinter.CTkButton(master=frame, text="RSA Encryption", font=("Helvetica", 24), command=RSA_encryption)
-    button1.pack(pady=20, padx=20)
-    button2 = customtkinter.CTkButton(master=frame, text="RSA Decryption", font=("Helvetica", 24), command=RSA_decryption)
-    button2.pack(pady=20, padx=20)
+    # button1 = customtkinter.CTkButton(master=frame, text="RSA Encryption", font=("Helvetica", 24), command=RSA_encryption)
+    # button1.pack(pady=20, padx=20)
+    # button2 = customtkinter.CTkButton(master=frame, text="RSA Decryption", font=("Helvetica", 24), command=RSA_decryption)
+    # button2.pack(pady=20, padx=20)
+    return 1
 
 def RSA_encryption():
     # Functionality for RSA encryption
