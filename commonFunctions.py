@@ -50,4 +50,5 @@ def my_eea(r0,r1):
     t0=t1
     t1=t
 
-  return r0, s0, t0
+  return r0
+
