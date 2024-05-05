@@ -86,8 +86,23 @@ def RSA_decryption():
 # XOR straight down
 # E[][][][] [][][][] [][][][] [][][][]
 
+# hex 0xFF, binary 0b10101
 
-def AES_decryption():
+# AES decryption uses the same key
+# does all the layers in reverse order and reverses the internals
+# last round of AES doesnt do MixCol
+# So first round of AES doesnt do invMixCol
+
+# keyAddition() XOR flips bits right back shouldnt need to change the function at all
+# MixCol()
+# 
+# ShiftRow() need to reverse all the indexes swap
+# [0 4 8 12] to     [0 4 8 12] no change
+# [1 5 9 13] to     [13 1 5 9] right shift 1
+# [2 6 10 14] to    [10 14 2 6] right shift 2
+# [3 7 11 15] to    [7 11 15 3] right shift 3
+
+def AES_decryption(cipherText, key):
 
     return
 
