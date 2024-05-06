@@ -1,7 +1,10 @@
 import customtkinter
 import sys
 import logging
+import random
+import secrets
 
+#Import common functions
 try:
     from commonFunctions import *
     logging.debug("File imported successfully.")
@@ -10,11 +13,11 @@ except ModuleNotFoundError:
     logging.critical("File is missing!")
     sys.exit()
 
+#Set them for GUI
 customtkinter.set_appearance_mode("light")
 customtkinter.set_default_color_theme("blue")
 root = customtkinter.CTk()
 root.geometry("1024x1024")
-
 
 #Hide page frame
 def hide_page(page):
@@ -23,7 +26,7 @@ def hide_page(page):
 def show_page(page):
     page.tkraise()
 
-
+#Display project menu
 def project_menu():
     show_page(home)
     label = customtkinter.CTkLabel(master=home, text="Crypto Group Project", font=("Verdana", 24))
@@ -39,19 +42,18 @@ def project_menu():
     members.pack(pady=20, padx=30)
 
 
+#Display AES menu
 def AES_menu():
-    # show_page(rsaPage)
-    hide_page(home)
     show_page(aesPage)
     # Functionality for RSA menu
     button1 = customtkinter.CTkButton(master=aesPage, text="AES Encryption", font=("Helvetica", 24),
-                                      command=RSA_encryption)
+                                      command=AES_encrypt)
     button1.pack(pady=20, padx=20)
     button2 = customtkinter.CTkButton(master=aesPage, text="AES Decryption", font=("Helvetica", 24),
-                                      command=RSA_decryption)
+                                      command=AES_decrypt)
     button2.pack(pady=20, padx=20)
 
-
+#Display RSA menu
 def RSA_menu():
     # show_page(rsaPage)
     hide_page(home)
@@ -63,14 +65,12 @@ def RSA_menu():
     button2.pack(pady=20, padx=20)
 
 
+#Function for RSA encryption
 def RSA_encryption():
     hide_page(rsaPage)
     hide_page(rsaDecryption)
-    hide_page(aesPage)
-    hide_page(aesEncryption)
-    hide_page(aesDecryption)
-
     show_page(rsaEncryption)
+
     # Prompt user to enter cipher text & public key
     label1 = customtkinter.CTkLabel(master=rsaEncryption, text="Enter plaintext: ", font=("Verdana", 18))
     label1.pack(pady=20, padx=50)
@@ -84,28 +84,22 @@ def RSA_encryption():
     label3.pack(pady=20, padx=50)
     entry3 = customtkinter.CTkEntry(rsaEncryption)
     entry3.pack(pady=20, padx=20)
-
-    # Create label to display the result
-
     def rsaEncryptProcess():
         x = int(entry1.get())
         n = int(entry2.get())
         e = int(entry3.get())
+        logging.debug("Encryption RSA: x=%d, n=%d, e=%d"% (x, n, e))
         y = str(fast_raise_power_book(x, e, n))
-        return "Encrypted result: "+ y
-
-
-    decrypt_button = customtkinter.CTkButton(master=rsaEncryption, text="Encrypt", font=("Verdana", 18),
+        print("Result from RSA encryption: "+y)
+    encrypt_button = customtkinter.CTkButton(master=rsaEncryption, text="Encrypt", font=("Verdana", 18),
                                              command=rsaEncryptProcess)
-    decrypt_button.pack(pady=20)
-    result_label = customtkinter.CTkLabel(master=rsaEncryption, text=y, font=("Verdana", 18))
-    result_label.pack(pady=20)
+    encrypt_button.pack(pady=20)
 
 
-
-
-
-def key_generation(p,q):
+def key_generation():
+    p= secrets.randbits(128)
+    q= secrets.randbits(128)
+    print(p,q)
     n = p*q
     phi = (p-1)*(q-1)
     e = 2
@@ -137,14 +131,11 @@ def RSA_decryption():
         y = int(entry1.get())
         d = int(entry2.get())
         n = int(entry3.get())
-        x = fast_raise_power_book(y, d, n)
+        x = str(fast_raise_power_book(y, d, n))
+        print("Result from RSA decryption: "+ x)
         return x
     decrypt_button = customtkinter.CTkButton(master=rsaDecryption, text="Decrypt", font=("Verdana", 18), command=rsaDecryptProcess)
     decrypt_button.pack(pady=20)
-    # Create label to display the result
-    result_label = customtkinter.CTkLabel(master=rsaDecryption, text="", font=("Verdana", 18))
-    result_label.pack(pady=20)
-
 
 
 
@@ -251,9 +242,68 @@ def RSA_decryption():
 # compute Key Schedule first then use them in reverse order
 
 def AES_decrypt():
-    show_page(aesDecryption)
+    # Show AES decryption page
+    # show_page(aesDecryption)
+    # Hide previous pages
+
+    # Prompt user to enter cipher text & private key
+    label1 = customtkinter.CTkLabel(master=aesDecryption, text="Enter cipher text: ", font=("Verdana", 18))
+    label1.pack(pady=20, padx=50)
+    entry1 = customtkinter.CTkEntry(aesDecryption)
+    entry1.pack(pady=20, padx=20)
+    label2 = customtkinter.CTkLabel(master=aesDecryption, text="Enter d: ", font=("Verdana", 18))
+    label2.pack(pady=20, padx=50)
+    entry2 = customtkinter.CTkEntry(aesDecryption)
+    entry2.pack(pady=20, padx=20)
+    print(AES_decryption(entry1.get(), entry2.get()))
+
+
 def AES_encrypt():
+    # Show AES encryption page
     show_page(aesEncryption)
+    # Hide previous pages
+    # hide_page(aesPage)
+    # hide_page(aesDecryption)
+
+
+    # Prompt user to enter plain text & private key
+    label1 = customtkinter.CTkLabel(master=aesEncryption, text="Enter plain text: ", font=("Verdana", 18))
+    label1.pack(pady=20, padx=50)
+    entry1 = customtkinter.CTkEntry(aesEncryption)
+    entry1.pack(pady=20, padx=20)
+    label2 = customtkinter.CTkLabel(master=aesEncryption, text="Enter d: ", font=("Verdana", 18))
+    label2.pack(pady=20, padx=50)
+    entry2 = customtkinter.CTkEntry(aesEncryption)
+    entry2.pack(pady=20, padx=20)
+
+def AES_encryption(plain_text, key):
+    # Convert plaintext to binary and pad if needed
+    plain_bytes = [ord(c) for c in plain_text]
+    while len(plain_bytes) % 16 != 0:
+        plain_bytes.append(0)
+
+    # Key Schedule implementation required
+    key_schedule = KeySchedule(key)
+
+    # Initial KeyAddition round (key whitening)
+    state = KeyAddition(plain_bytes, key_schedule, 0)
+
+    # Perform rounds based on key length
+    num_rounds = 10 if len(key) == 16 else 12 if len(key) == 24 else 14
+
+    for round_num in range(1, num_rounds):
+        state = ByteSub(state)
+        state = ShiftRow(state)
+        state = MixCol(state)
+        state = KeyAddition(state, key_schedule, round_num)
+
+    # Final round (without MixCol)
+    state = ByteSub(state)
+    state = ShiftRow(state)
+    state = KeyAddition(state, key_schedule, num_rounds)
+
+
+
 def AES_decryption(cipher, key):
     # if cipher is text convert it to binary string
     cipher = " ".join(format(ord(c),"b") for c in cipher)
@@ -277,6 +327,7 @@ def AES_decryption(cipher, key):
 home = customtkinter.CTkFrame(master=root)
 home.pack(pady=80, padx=60, fill="both", expand=True)
 
+
 #RSA frames
 rsaPage = customtkinter.CTkFrame(master = root)
 rsaPage.pack(pady=80, padx=60, fill="both", expand=True)
@@ -293,7 +344,7 @@ aesEncryption.pack(pady=80, padx=60, fill="both", expand=True)
 aesDecryption = customtkinter.CTkFrame(master= root)
 aesDecryption.pack(pady=80, padx=60, fill="both", expand=True)
 
-
+# print(key_generation())
 
 project_menu()
 root.mainloop()
