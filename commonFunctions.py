@@ -189,20 +189,20 @@ SBox = [0x63, 0x7c, 0x77, ...]  # Simplified representation
 # Rcon (round constants)
 Rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]
 
-def g(word, round_num):
-    # Rotate word bytes to the left
-    word = word[1:] + word[:1]
-
-    # Apply S-Box substitution
-    word = [SBox[b] for b in word]
-
-    # XOR the first byte with the round constant
-    word[0] ^= Rcon[round_num - 1]
-
-    return word
-# KeyAddition() XOR flips bits right back shouldnt need to change the function at all
-# So this is left for Oumar who is doing AES encryption
-SBox = [[0x63, 0x7c, 0x77, ...], ...]
+# def g(word, round_num):
+#     # Rotate word bytes to the left
+#     word = word[1:] + word[:1]
+#
+#     # Apply S-Box substitution
+#     word = [SBox[b] for b in word]
+#
+#     # XOR the first byte with the round constant
+#     word[0] ^= Rcon[round_num - 1]
+#
+#     return word
+# # KeyAddition() XOR flips bits right back shouldnt need to change the function at all
+# # So this is left for Oumar who is doing AES encryption
+# SBox = [[0x63, 0x7c, 0x77, ...], ...]
 
 def ByteSub(state):
     # Apply S-Box transformation
