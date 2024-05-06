@@ -144,7 +144,18 @@ inverseMatrix = [
 # KeySchedule() is the same for encryption and decryption
 # So this is left for Oumar who is doing AES encryption
 
-# KeyAddition(cipher,) XOR flips bits right back shouldnt need to change the function at all
+def KeyAddition(cipher, subKey):
+  c = list(cipher.split(" "))
+  s = list(subKey.split(" "))
+  x = []
+  for i in len(c):
+    x.append(f'{int(c[i],2) ^ int(s[i],2):08b}')
+  result = ""
+  for i in x:
+    result += x[i] + " "
+  result = result.rstrip() # gets rid of trailing space
+  return result
+# XOR flips bits right back shouldnt need to change the function at all
 # So this is left for Oumar who is doing AES encryption
 
 def InvMixCol(cipher):

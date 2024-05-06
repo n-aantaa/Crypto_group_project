@@ -1,47 +1,12 @@
-#add polynomials together
-def add(A, B):
-  # make sure A, B have the same length
-  while len(A) > len(B):
-    B = '0' + B
-  while len(B) > len(A):
-    A = '0' + A
-  C = ''
-  for i in range(len(A)):
-    if A[i] == B[i]:
-      C += '0'
-    else:
-      C += '1'
-  # get rid of zeros in front of C
-  i = 0
-  while i < len(C) and C[i] == '0':
-    i += 1
-  if i == len(C): # all 0s
-    C = '0'
-  else:
-    C = C[i:]
-  return C
-
-def multiply(A, B):
-  C = '0' # result
-  for i in range(len(B)-1, -1, -1):
-    if B[i] == '1':
-      C = add(C, A)
-    A = A + '0'
-  return C
-
-# mult then mod
-def mod(A):
-  result = A
-  while len(result) >= len(P):
-    left = add(result[:len(P)], P)
-    right = result[len(P):]
-    result = left + right
-  return result
-
-P = '100011011'
-inverseMatrix = [
-0x0E,0x0B,0x0D,0x09,
-0x09,0x0E,0x0B,0x0D,
-0x0D,0x09,0x0E,0x0B,
-0x0B,0x0D,0x09,0x0E]
-print()
+cipher = "Hello World"
+cipher = " ".join(format(ord(c),"b") for c in cipher)
+subKey = "11110000 00001111"
+subKey = " ".join(format(ord(c),"b") for c in subKey)
+c = list(cipher.split(" "))
+s = list(subKey.split(" "))
+x = []
+for i in range(0,2):
+    print(c[i])
+    print(s[i])
+    x.append(f'{int(c[i],2) ^ int(s[i],2):08b}')
+print(x[1])
