@@ -196,40 +196,6 @@ def RSA_decryption():
 # D₀ = 02*C₀ + 03*C₅ + 01*C₁₀ + 01*C₁₅
 #  * is GF(2^8) mult    + is GF(2^8) add
 
-# KeyAddition() XOR keys 8bit bytes to MixCols 8bit bytes result
-# D[][][][] [][][][] [][][][] [][][][]
-# XOR straight down
-# E[][][][] [][][][] [][][][] [][][][]
-
-# Key Schedule
-# key = k₀ ... K₁₅
-# K is 8bits byte of key
-# W[i] = W[0] ... W[43]
-# W[i] is 32bits word
-# [][][][] [][][][] [][][][] [][][][] Ki each 8bits
-# [ W[0] ] [ W[1] ] [ W[2] ] [ W[3] ] W[i] each 32bits
-# g()XOR  -> XOR  ->  XOR  ->  XOR
-# [ W[4] ] [ W[5] ] [ W[6] ] [ W[7] ] W[i] each 32bits
-# g(W[3]) XOR W[0] = W[4]
-# W[4] XOR W[1] = W[5]
-# W[5] XOR W[2] = W[6]
-# W[6] XOR W[3] = W[7]
-
-# g() inner workings
-# [V₀][V₁][V₂][V₃] rotate left
-# [V₁][V₂][V₃][V₀]
-#  S   S   S   S
-# only S([V₁]) gets XORd with RC[i] result
-# g() result = [ W[4] ]
-
-# Round Coefficient 1,...,10
-# RC[i] =
-# RC[1]= x0 =(00000001)2
-# RC[2]= x1 =(00000010)2
-# RC[3]= x2 =(00000100)2
-# ...
-# RC[10]= x9 =(00110110)2.
-
 # hex 0xFF, binary 0b10101
 
 
@@ -307,9 +273,9 @@ def AES_encryption(plain_text, key):
 def AES_decryption(cipher, key):
     # if cipher is text convert it to binary string
     cipher = " ".join(format(ord(c),"b") for c in cipher)
-    keySchedule = KeySchedule(key) # should return an array of each subkey
+    keySchedule = list(KeySchedule(key)) # should return an array of each subkey
     keySchedule.reverse() # could also just loop thru backwards
-    for i in len(keyShedule)-1: # keySchedule length is the # of rounds +1
+    for i in range(len(keySchedule)-1): # keySchedule length is the # of rounds +1
       if(i==0): # first decryption round doesn't MixCol()
           cipher = KeyAddition(cipher, keySchedule[i])
           cipher = InvShiftRows(cipher)
@@ -318,7 +284,7 @@ def AES_decryption(cipher, key):
       cipher = InvMixCol(cipher)
       cipher = InvShiftRows(cipher)
       cipher = InvByteSub(cipher)
-    cipher = KeyAddition(cipher, keySchedule[len(keyShedule)-1])
+    cipher = KeyAddition(cipher, keySchedule[len(keySchedule)-1])
     # convert cipher back to text
     cipher = "".join(chr(int(c,2)) for c in cipher.split(" "))
     return cipher

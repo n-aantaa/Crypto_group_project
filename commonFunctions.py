@@ -141,126 +141,109 @@ inverseMatrix = [
 0x0D,0x09,0x0E,0x0B,
 0x0B,0x0D,0x09,0x0E]
 
-# KeySchedule() is the same for encryption and decryption
-# So this is left for Oumar who is doing AES encryption
+keyScheduleIter = 0
+
 def KeySchedule(key):
-    key_size = len(key)
-    assert key_size in [16, 24, 32], "Key must be 128, 192, or 256 bits long"
+  key = "".join(key.split())
+  keyArray = []
+  keyArray.append(key) # key 0
+  w = []
+  word = ""
+  for i in len(key): # splits key with no spaces into 32bits chunks
+    word += key[i]
+    if(i % 32 == 31):
+      w.append(word) # add 32 bit chunk to array
+      word = ""
+  for i in range(0,11): # 11 keys in 128bit
+    keyScheduleIter = i
+    w.append(int(w[i*4]) ^ int(g(w[(i+1)*4 - 1]))) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+    w.append(int(w[(i+1)*4]) ^ int(w[i+1])) # w[5] = w[4] XOR w[1]
+    w.append(int(w[(i+1)*4 + 1]) ^ int(w[i+2])) # w[6] = w[5] XOR w[2]
+    w.append(int(w[(i+1)*4 + 2]) ^ int(w[i+3])) # w[7] = w[6] XOR w[3]
+    for i in range((i+1)*4,len(w)):
+      word += w[i]
+    keyArray.append(word)
+    word = ""
+  return keyArray
+# Key Schedule
+# key = k₀ ... K₁₅
+# K is 8bits byte of key
+# W[i] = W[0] ... W[43]
+# W[i] is 32bits word
+# [][][][] [][][][] [][][][] [][][][] Ki each 8bits
+# [ W[0] ] [ W[1] ] [ W[2] ] [ W[3] ] W[i] each 32bits
+# g()XOR  -> XOR  ->  XOR  ->  XOR
+# [ W[4] ] [ W[5] ] [ W[6] ] [ W[7] ] W[i] each 32bits
+# g(W[3]) XOR W[0] = W[4]
+# W[4] XOR W[1] = W[5]
+# W[5] XOR W[2] = W[6]
+# W[6] XOR W[3] = W[7]
 
-    num_words = {16: 44, 24: 52, 32: 60}[key_size]
-    key_words = key_size // 4
-    schedule = []
+def g(word):
+  wa = ""
+  v = []
+  for i in range(len(word)): # splits word with no spaces into 8bits chunks
+    wa += word[i]
+    if(i % 8 == 7):
+      v.append(wa) # add 8 bit chunk to array
+      wa = ""
+  v.append(v[0]) # rotate left
+  del v[0]
+  result = ""
+  for i in range(len(v)):
+    xy = hex(int(v[i],2))
+    x = int(xy[2],16)
+    y = int(xy[3],16)
+    result += f'{AESSBox[x][y]:08b}'
+    if(i==0):
+      result = int(result) ^ rc[keyScheduleIter]
+  return result
+# [V₀][V₁][V₂][V₃] rotate left
+# [V₁][V₂][V₃][V₀]
+#  S   S   S   S
+# only S([V₁]) gets XORd with RC[i] result
+# g() result = [ W[4] ]
+rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
+# Round Coefficient 1,...,10
+# RC[i] =
+# RC[1]= x0 =(00000001)2
+# RC[2]= x1 =(00000010)2
+# RC[3]= x2 =(00000100)2
+# ...
+# RC[10]= x9 =(00110110)2.
 
-    # Split the original key into 4-byte words
-    for i in range(key_words):
-        schedule.append([ord(key[4 * i]), ord(key[4 * i + 1]), ord(key[4 * i + 2]), ord(key[4 * i + 3])])
+def KeyAddition(cipher, subKey):
+  c = list(cipher.split(" "))
+  s = list(subKey.split(" "))
+  x = []
+  for i in len(c):
+    x.append(f'{int(c[i],2) ^ int(s[i],2):08b}') # XOR needs binary ints then string format result save to x
+  result = ""
+  for i in x:
+    result += x[i] + " "
+  result = result.rstrip() # gets rid of trailing space
+  return result
+# KeyAddition() XOR keys 8bit bytes to MixCols 8bit bytes result
+# D[][][][] [][][][] [][][][] [][][][]
+# XOR straight down
+# E[][][][] [][][][] [][][][] [][][][]
 
-    # Generate the remaining words
-    for i in range(key_words, num_words):
-        temp = schedule[i - 1]
-
-        # Apply g() every key_words number of words
-        if i % key_words == 0:
-            temp = g(temp, i // key_words)
-
-        # Special case for 256-bit keys (substitution on every 8th word)
-        if key_size == 32 and i % key_words == 4:
-            temp = [SBox[b] for b in temp]
-
-        # XOR with the word "key_words" before to get the next word
-        schedule.append([t ^ s for t, s in zip(temp, schedule[i - key_words])])
-
-    # Flatten to a list of bytes
-    return [byte for word in schedule for byte in word]
-
-# Example usage for AES-128
-key = "thisisthekey1234"  # 128-bit key (16 characters)
-key_schedule = KeySchedule(key)
-
-# Display the key schedule as 4-byte words
-for i in range(0, len(key_schedule), 4):
-    print(f"W[{i // 4}]: {key_schedule[i:i + 4]}")
-
-# AES constants and S-Box (replace with actual S-Box values)
-SBox = [0x63, 0x7c, 0x77, ...]  # Simplified representation
-
-# Rcon (round constants)
-Rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]
-
-# def g(word, round_num):
-#     # Rotate word bytes to the left
-#     word = word[1:] + word[:1]
-#
-#     # Apply S-Box substitution
-#     word = [SBox[b] for b in word]
-#
-#     # XOR the first byte with the round constant
-#     word[0] ^= Rcon[round_num - 1]
-#
-#     return word
-# # KeyAddition() XOR flips bits right back shouldnt need to change the function at all
-# # So this is left for Oumar who is doing AES encryption
-# SBox = [[0x63, 0x7c, 0x77, ...], ...]
-
-def ByteSub(state):
-    # Apply S-Box transformation
-    for i in range(len(state)):
-        state[i] = SBox[state[i] // 16][state[i] % 16]
-    return state
-
-def ShiftRow(state):
-    # Shift rows according to the AES standard
-    state = state[:4] + state[5:8] + state[4:5] + state[9:12] + state[8:9] + state[13:] + state[12:13]
-    return state
-
-def MixCol(state):
-
-    def gf_mult(a, b):
-        p = 0
-        hi_bit_set = 0x80
-        modulo = 0x11b
-
-        for _ in range(8):
-            if b & 1:
-                p ^= a
-            hi_bit = a & hi_bit_set
-            a <<= 1
-            if hi_bit:
-                a ^= modulo
-            b >>= 1
-        return p
-
-    def mix_single_col(col):
-        return [
-            gf_mult(2, col[0]) ^ gf_mult(3, col[1]) ^ col[2] ^ col[3],
-            col[0] ^ gf_mult(2, col[1]) ^ gf_mult(3, col[2]) ^ col[3],
-            col[0] ^ col[1] ^ gf_mult(2, col[2]) ^ gf_mult(3, col[3]),
-            gf_mult(3, col[0]) ^ col[1] ^ col[2] ^ gf_mult(2, col[3])
-        ]
-
-    # Mix all columns
-    new_state = []
-    for col in range(0, len(state), 4):
-        new_state.extend(mix_single_col(state[col:col + 4]))
-
-    return new_state
-
-def KeyAddition(state, key_schedule, round_num):
-    # XOR each byte in state with the appropriate subkey
-    start_idx = round_num * 16
-    return [s ^ key for s, key in zip(state, key_schedule[start_idx:start_idx + 16])]
 def InvMixCol(cipher):
   c = list(cipher.split(" "))
   b = []
   for i in range(0,4):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[0])),mod(multiply(c[i],inverseMatrix[1]))),mod(multiply(c[i],inverseMatrix[2]))),mod(multiply(c[i],inverseMatrix[3])))
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[0]:08b}')),mod(multiply(c[i],f'{inverseMatrix[1]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[2]:08b}')),mod(multiply(c[i],f'{inverseMatrix[3]:08b}'))))
   for i in range(4,8):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[4])),mod(multiply(c[i],inverseMatrix[5]))),mod(multiply(c[i],inverseMatrix[6]))),mod(multiply(c[i],inverseMatrix[7])))
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[4]:08b}')),mod(multiply(c[i],f'{inverseMatrix[5]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[6]:08b}')),mod(multiply(c[8],f'{inverseMatrix[7]:08b}'))))
   for i in range(8,12):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[8])),mod(multiply(c[i],inverseMatrix[9]))),mod(multiply(c[i],inverseMatrix[10]))),mod(multiply(c[i],inverseMatrix[11])))
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[8]:08b}')),mod(multiply(c[i],f'{inverseMatrix[9]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[10]:08b}')),mod(multiply(c[i],f'{inverseMatrix[11]:08b}'))))
   for i in range(12,16):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[12])),mod(multiply(c[i],inverseMatrix[13]))),mod(multiply(c[i],inverseMatrix[14]))),mod(multiply(c[i],inverseMatrix[15])))
-  return
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[12]:08b}')),mod(multiply(c[i],f'{inverseMatrix[13]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[14]:08b}')),mod(multiply(c[i],f'{inverseMatrix[15]:08b}'))))
+  result = ""
+  for i in b:
+    result += b[i] + " "
+  result = result.rstrip() # gets rid of trailing space
+  return result
 # B0   0E 0B 0D 09   C0
 # B1 = 09 0E 0B 0D * C1
 # B2   0D 09 0E 0B   C2
@@ -285,7 +268,7 @@ def InvShiftRows(cipher):
   result = ""
   for i in l:
     result += l[i] + " "
-  result = result.strip() # gets rid of trailing space
+  result = result.rstrip() # gets rid of trailing space
   return result
 # need to reverse all the indexes swap
 # [0 4 8 12] to     [0 4 8 12] no change
