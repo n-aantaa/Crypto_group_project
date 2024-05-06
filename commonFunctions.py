@@ -144,21 +144,25 @@ inverseMatrix = [
 # KeySchedule() is the same for encryption and decryption
 # So this is left for Oumar who is doing AES encryption
 
-# KeyAddition() XOR flips bits right back shouldnt need to change the function at all
+# KeyAddition(cipher,) XOR flips bits right back shouldnt need to change the function at all
 # So this is left for Oumar who is doing AES encryption
 
 def InvMixCol(cipher):
   c = list(cipher.split(" "))
   b = []
   for i in range(0,4):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[0])),mod(multiply(c[i],inverseMatrix[1]))),mod(multiply(c[i],inverseMatrix[2]))),mod(multiply(c[i],inverseMatrix[3])))
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[0]:08b}')),mod(multiply(c[i],f'{inverseMatrix[1]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[2]:08b}')),mod(multiply(c[i],f'{inverseMatrix[3]:08b}'))))
   for i in range(4,8):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[4])),mod(multiply(c[i],inverseMatrix[5]))),mod(multiply(c[i],inverseMatrix[6]))),mod(multiply(c[i],inverseMatrix[7])))
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[4]:08b}')),mod(multiply(c[i],f'{inverseMatrix[5]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[6]:08b}')),mod(multiply(c[8],f'{inverseMatrix[7]:08b}'))))
   for i in range(8,12):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[8])),mod(multiply(c[i],inverseMatrix[9]))),mod(multiply(c[i],inverseMatrix[10]))),mod(multiply(c[i],inverseMatrix[11])))
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[8]:08b}')),mod(multiply(c[i],f'{inverseMatrix[9]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[10]:08b}')),mod(multiply(c[i],f'{inverseMatrix[11]:08b}'))))
   for i in range(12,16):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[12])),mod(multiply(c[i],inverseMatrix[13]))),mod(multiply(c[i],inverseMatrix[14]))),mod(multiply(c[i],inverseMatrix[15])))
-  return
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[12]:08b}')),mod(multiply(c[i],f'{inverseMatrix[13]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[14]:08b}')),mod(multiply(c[i],f'{inverseMatrix[15]:08b}'))))
+  result = ""
+  for i in b:
+    result += b[i] + " "
+  result = result.rstrip() # gets rid of trailing space
+  return result
 # B0   0E 0B 0D 09   C0
 # B1 = 09 0E 0B 0D * C1
 # B2   0D 09 0E 0B   C2
@@ -183,7 +187,7 @@ def InvShiftRows(cipher):
   result = ""
   for i in l:
     result += l[i] + " "
-  result = result.strip() # gets rid of trailing space
+  result = result.rstrip() # gets rid of trailing space
   return result
 # need to reverse all the indexes swap
 # [0 4 8 12] to     [0 4 8 12] no change
