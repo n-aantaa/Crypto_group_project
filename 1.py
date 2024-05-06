@@ -1,4 +1,5 @@
-result = "11111111"
-rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
-result = result ^ "11111111"
-print(result)
+def fun():
+    arr = [1,2,3]
+    return arr
+arr2 = fun()
+print(arr2)
