@@ -145,10 +145,112 @@ inverseMatrix = [
 
 # KeySchedule() is the same for encryption and decryption
 # So this is left for Oumar who is doing AES encryption
+def KeySchedule(key):
+    key_size = len(key)
+    assert key_size in [16, 24, 32], "Key must be 128, 192, or 256 bits long"
 
+    num_words = {16: 44, 24: 52, 32: 60}[key_size]
+    key_words = key_size // 4
+    schedule = []
+
+    # Split the original key into 4-byte words
+    for i in range(key_words):
+        schedule.append([ord(key[4 * i]), ord(key[4 * i + 1]), ord(key[4 * i + 2]), ord(key[4 * i + 3])])
+
+    # Generate the remaining words
+    for i in range(key_words, num_words):
+        temp = schedule[i - 1]
+
+        # Apply g() every key_words number of words
+        if i % key_words == 0:
+            temp = g(temp, i // key_words)
+
+        # Special case for 256-bit keys (substitution on every 8th word)
+        if key_size == 32 and i % key_words == 4:
+            temp = [SBox[b] for b in temp]
+
+        # XOR with the word "key_words" before to get the next word
+        schedule.append([t ^ s for t, s in zip(temp, schedule[i - key_words])])
+
+    # Flatten to a list of bytes
+    return [byte for word in schedule for byte in word]
+
+# Example usage for AES-128
+key = "thisisthekey1234"  # 128-bit key (16 characters)
+key_schedule = KeySchedule(key)
+
+# Display the key schedule as 4-byte words
+for i in range(0, len(key_schedule), 4):
+    print(f"W[{i // 4}]: {key_schedule[i:i + 4]}")
+
+# AES constants and S-Box (replace with actual S-Box values)
+SBox = [0x63, 0x7c, 0x77, ...]  # Simplified representation
+
+# Rcon (round constants)
+Rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]
+
+def g(word, round_num):
+    # Rotate word bytes to the left
+    word = word[1:] + word[:1]
+
+    # Apply S-Box substitution
+    word = [SBox[b] for b in word]
+
+    # XOR the first byte with the round constant
+    word[0] ^= Rcon[round_num - 1]
+
+    return word
 # KeyAddition() XOR flips bits right back shouldnt need to change the function at all
 # So this is left for Oumar who is doing AES encryption
+SBox = [[0x63, 0x7c, 0x77, ...], ...]
 
+def ByteSub(state):
+    # Apply S-Box transformation
+    for i in range(len(state)):
+        state[i] = SBox[state[i] // 16][state[i] % 16]
+    return state
+
+def ShiftRow(state):
+    # Shift rows according to the AES standard
+    state = state[:4] + state[5:8] + state[4:5] + state[9:12] + state[8:9] + state[13:] + state[12:13]
+    return state
+
+def MixCol(state):
+
+    def gf_mult(a, b):
+        p = 0
+        hi_bit_set = 0x80
+        modulo = 0x11b
+
+        for _ in range(8):
+            if b & 1:
+                p ^= a
+            hi_bit = a & hi_bit_set
+            a <<= 1
+            if hi_bit:
+                a ^= modulo
+            b >>= 1
+        return p
+
+    def mix_single_col(col):
+        return [
+            gf_mult(2, col[0]) ^ gf_mult(3, col[1]) ^ col[2] ^ col[3],
+            col[0] ^ gf_mult(2, col[1]) ^ gf_mult(3, col[2]) ^ col[3],
+            col[0] ^ col[1] ^ gf_mult(2, col[2]) ^ gf_mult(3, col[3]),
+            gf_mult(3, col[0]) ^ col[1] ^ col[2] ^ gf_mult(2, col[3])
+        ]
+
+    # Mix all columns
+    new_state = []
+    for col in range(0, len(state), 4):
+        new_state.extend(mix_single_col(state[col:col + 4]))
+
+    return new_state
+
+def KeyAddition(state, key_schedule, round_num):
+    # XOR each byte in state with the appropriate subkey
+    start_idx = round_num * 16
+    return [s ^ key for s, key in zip(state, key_schedule[start_idx:start_idx + 16])]
 def InvMixCol(cipher):
   c = list(cipher.split(" "))
   b = []
