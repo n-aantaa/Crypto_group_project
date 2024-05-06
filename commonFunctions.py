@@ -201,8 +201,6 @@ def InvByteSub(cipher):
   result = result.strip() # gets rid of trailing space
   return result
 # apply each byte to inverseAESSBox
-  return r0
 
 
-  return r0
 
