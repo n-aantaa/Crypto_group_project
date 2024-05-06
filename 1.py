@@ -1,12 +1,4 @@
-cipher = "Hello World"
-cipher = " ".join(format(ord(c),"b") for c in cipher)
-subKey = "11110000 00001111"
-subKey = " ".join(format(ord(c),"b") for c in subKey)
-c = list(cipher.split(" "))
-s = list(subKey.split(" "))
-x = []
-for i in range(0,2):
-    print(c[i])
-    print(s[i])
-    x.append(f'{int(c[i],2) ^ int(s[i],2):08b}')
-print(x[1])
+result = "11111111"
+rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
+result = result ^ "11111111"
+print(result)
