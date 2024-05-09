@@ -112,10 +112,13 @@ def AES_encryption(plain_text, key):
 def AES_decryption(cipher, key):
     # if cipher is text convert it to binary string
     cipher = " ".join(format(ord(c),"b") for c in cipher)
+
     keySchedule = list(KeySchedule(key)) # should return an array of each subkey
     keySchedule.reverse() # could also just loop thru backwards
     for i in range(len(keySchedule)-1): # keySchedule length is the # of rounds +1
       if(i==0): # first decryption round doesn't MixCol()
+          keySchedule[i] = " ".join(format(ord(c),"b") for c in cipher)
+
           cipher = KeyAddition(cipher, keySchedule[i])
           cipher = InvShiftRows(cipher)
           cipher = InvByteSub(cipher)

@@ -86,20 +86,23 @@ class AESPage(tk.Frame):
         label = tk.Label(self, text="AES Encryption/Decryption", font=("Arial", 16))
         label.pack(pady=10)
 
+        label = tk.Label(self, text="Enter cipher text:", font=("Arial", 16))
+        label.pack(pady=10)
+
+        self.message_entry = tk.Entry(self, width=30)
+        self.message_entry.pack(pady=10)
+
+        label = tk.Label(self, text="Enter key:", font=("Arial", 16))
+        label.pack(pady=10)
+
+        self.key_entry = tk.Entry(self, width=30)
+        self.key_entry.pack(pady=10)
+
         encrypt_button = tk.Button(self, text="Encryption", command=lambda: self.select_operation("encrypt"))
         encrypt_button.pack()
 
         decrypt_button = tk.Button(self, text="Decryption", command=lambda: self.select_operation("decrypt"))
         decrypt_button.pack()
-
-        self.key_size_var = tk.StringVar()
-        key_size_label = tk.Label(self, text="Select Key Size:")
-        key_size_label.pack()
-        key_size_menu = ttk.Combobox(self, textvariable=self.key_size_var, values=["128", "192", "256"])
-        key_size_menu.pack()
-
-        self.message_entry = tk.Entry(self, width=30)
-        self.message_entry.pack(pady=10)
 
         self.result_label = tk.Label(self, text="")
         self.result_label.pack()
@@ -107,13 +110,15 @@ class AESPage(tk.Frame):
         self.controller = controller
 
     def select_operation(self, operation):
-        key_size = int(self.key_size_var.get())
+        # key_size = int(self.key_size_var.get())
         message = self.message_entry.get()
+        key = self.key_entry.get()
+
 
         if operation == "encrypt":
-            result = aes_encrypt(message, key_size)
+            result = AES_encryption(message, key)
         elif operation == "decrypt":
-            result = aes_decrypt(message, key_size)
+            result = AES_decryption(message, key)
 
         self.result_label.config(text=result)
 

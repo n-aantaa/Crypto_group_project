@@ -158,27 +158,7 @@ inverseMatrix = [
 0x0D,0x09,0x0E,0x0B,
 0x0B,0x0D,0x09,0x0E]
 
-def KeySchedule(key):
-  key = format(key,"032x")
-  keyArray = []
-  keyArray.append(key) # key 0
-  w = []
-  word = ""
-  for i in range(0,4):
-      for j in range(i*8,(i+1)*8):
-          word += key[j]
-      w.append(word)
-      word = ""
-  for i in range(0,10): # 11 keys in 128bit and 1 already appended
-      w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
-      w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
-      w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
-      w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
-      for j in range((i+1)*4,len(w)):
-          word += w[j]
-      keyArray.append(word)
-      word = ""
-  return keyArray
+
 # Key Schedule
 # key = k₀ ... K₁₅
 # K is 8bits byte of key
@@ -209,12 +189,36 @@ def g(z,round_num):
       result += format(v[i],"02x")
   result = int(result,16)
   return result
+
+def KeySchedule(key):
+  key = format(int(key,16),"032x")
+  keyArray = []
+  keyArray.append(key) # key 0
+  w = []
+  word = ""
+  for i in range(0,4):
+      for j in range(i*8,(i+1)*8):
+          word += key[j]
+      w.append(word)
+      word = ""
+  for i in range(0,10): # 11 keys in 128bit and 1 already appended
+      w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+      w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
+      w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
+      w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
+      for j in range((i+1)*4,len(w)):
+          word += w[j]
+      keyArray.append(word)
+      word = ""
+  return keyArray
+
+# print(KeySchedule(0x5468617473206D79204B756E67204675))
+
 # [V₀][V₁][V₂][V₃] rotate left
 # [V₁][V₂][V₃][V₀]
 #  S   S   S   S
 # only S([V₁]) gets XORd with RC[i] result
 # g() result = [ W[4] ]
-rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
 # Round Coefficient 1,...,10
 # RC[i] =
 # RC[1]= x0 =(00000001)2
@@ -227,10 +231,10 @@ def KeyAddition(cipher, subKey):
   c = list(cipher.split(" "))
   s = list(subKey.split(" "))
   x = []
-  for i in len(c):
+  for i in range(len(c)):
     x.append(f'{int(c[i],2) ^ int(s[i],2):08b}') # XOR needs binary ints then string format result save to x
   result = ""
-  for i in x:
+  for i in range(len(x)):
     result += x[i] + " "
   result = result.rstrip() # gets rid of trailing space
   return result
@@ -277,7 +281,7 @@ def InvShiftRows(cipher):
   del l[16]
   del l[16]
   result = ""
-  for i in l:
+  for i in range(len(l)):
     result += l[i] + " "
   result = result.rstrip() # gets rid of trailing space
   return result
@@ -291,6 +295,8 @@ def InvByteSub(cipher):
   result = ""
   for c in cipher.split(" "):
     xy = hex(int(c,2))
+    if len(xy) ==3:
+      xy = xy[:2] + '0' + xy[2:]
     x = int(xy[2],16)
     y = int(xy[3],16)
     result += f'{inverseAESSBox[x][y]:08b}' + " "
