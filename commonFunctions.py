@@ -203,8 +203,38 @@ for i in range(0, len(key_schedule), 4):
 # AES constants and S-Box (replace with actual S-Box values)
 SBox = [0x63, 0x7c, 0x77, ...]  # Simplified representation
 
-# Rcon (round constants)
-Rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]
+def g(word):
+  wa = ""
+  v = []
+  for i in range(len(word)): # splits word with no spaces into 8bits chunks
+    wa += word[i]
+    if(i % 8 == 7):
+      v.append(wa) # add 8 bit chunk to array
+      wa = ""
+  v.append(v[0]) # rotate left
+  del v[0]
+  result = ""
+  for i in range(len(v)):
+    xy = hex(int(v[i],2))
+    x = int(xy[2],16)
+    y = int(xy[3],16)
+    result += f'{AESSBox[x][y]:08b}'
+    if(i==0):
+      result = int(result) ^ rc[keyScheduleIter]
+  return result
+# [V₀][V₁][V₂][V₃] rotate left
+# [V₁][V₂][V₃][V₀]
+#  S   S   S   S
+# only S([V₁]) gets XORd with RC[i] result
+# g() result = [ W[4] ]
+rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
+# Round Coefficient 1,...,10
+# RC[i] =
+# RC[1]= x0 =(00000001)2
+# RC[2]= x1 =(00000010)2
+# RC[3]= x2 =(00000100)2
+# ...
+# RC[10]= x9 =(00110110)2.
 
 # def g(word, round_num):
 #     # Rotate word bytes to the left
@@ -278,8 +308,13 @@ def InvMixCol(cipher):
   for i in range(8,12):
     b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[8])),mod(multiply(c[i],inverseMatrix[9]))),mod(multiply(c[i],inverseMatrix[10]))),mod(multiply(c[i],inverseMatrix[11])))
   for i in range(12,16):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[12])),mod(multiply(c[i],inverseMatrix[13]))),mod(multiply(c[i],inverseMatrix[14]))),mod(multiply(c[i],inverseMatrix[15])))
-  return
+    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[12]:08b}')),mod(multiply(c[i],f'{inverseMatrix[13]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[14]:08b}')),mod(multiply(c[i],f'{inverseMatrix[15]:08b}'))))
+  result = ""
+  for i in b:
+    result += b[i] + " "
+  result = result.rstrip() # gets rid of trailing space
+  return result
+
 # B0   0E 0B 0D 09   C0
 # B1 = 09 0E 0B 0D * C1
 # B2   0D 09 0E 0B   C2
@@ -322,8 +357,6 @@ def InvByteSub(cipher):
   result = result.strip() # gets rid of trailing space
   return result
 # apply each byte to inverseAESSBox
-  return r0
 
 
-  return r0
 
