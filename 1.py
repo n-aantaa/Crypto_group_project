@@ -18,44 +18,46 @@ AESSBox = [
 
 rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
 def g(z,round_num):
-    v = [z[i:i+8] for i in range(0,len(z),8)]
+    print(z)
+    v = [z[i:i+2] for i in range(0,len(z),2)]
+    print(v)
     v.append(v[0]) # rotate left
     del v[0]
-    result = ""
-    for i in range(len(v)):
-        v[i] = int(v[i],2)
     print(v)
-    for i in range(len(v)):
-        xy = "0x{:02x}".format(v[i])
-        print(xy)
-        x = int(xy[2],16)
-        y = int(xy[3],16)
+    result = ""
+    for i in range(0,4):
+        x = int(v[i][0],16)
+        y = int(v[i][1],16)
         if(i==0):
             v[i] = AESSBox[x][y] ^ rc[round_num]
         else:
             v[i] = AESSBox[x][y]
-        result += format(v[i],"08b")
-    return int(result,2)
+        print(format(v[i],"02x"))
+        result += format(v[i],"02x")
+    result = int(result,16)
+    return result
 
-key = format(0x5468617473206D79204B756E67204675, "0128b")
-print(key)
-# key = "".join(key.split())
+key = hex(0x5468617473206D79204B756E67204675)[2:]
 keyArray = []
 keyArray.append(key) # key 0
-w = [key[i:i+32] for i in range(0,len(key),32)]
+w = []
 word = ""
-for i in range(len(w)): # convert to int
-    w[i] = int(w[i],2)
+for i in range(0,4):
+    for j in range(i*8,(i+1)*8):
+        word += key[j]
+    w.append(word)
+    word = ""
 print(w)
 for i in range(0,10): # 11 keys in 128bit and 1 already appended
     print(i)
-    w.append(w[i*4] ^ g(format(w[(i+1)*4 - 1], "032b"),i)) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
-    w.append(w[(i+1)*4] ^ w[i+1]) # w[5] = w[4] XOR w[1]
-    w.append(w[(i+1)*4 + 1] ^ w[i+2]) # w[6] = w[5] XOR w[2]
-    w.append(w[(i+1)*4 + 2] ^ w[i+3]) # w[7] = w[6] XOR w[3]
-    for j in range((i+1)*4,(i+1)*4 + 4):
-        # print(w[j])
-        word += format(w[j], "032b")
+    w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+    print(w[(i+1)*4])
+    print(w[(i+1)*4 - 3])
+    w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
+    w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
+    w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
+    for j in range((i+1)*4,len(w)):
+        word += w[j]
     keyArray.append(word)
     word = ""
-print(hex(int(keyArray[2],2)))
+print(keyArray)

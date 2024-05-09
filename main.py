@@ -89,7 +89,8 @@ def RSA_decryption():
 # So first round of AES doesnt do invMixCol
 
 # compute Key Schedule first then use them in reverse order
-
+cipher = format(0x29C3505F571420F6402299B31A02D73A,"0128b")
+key = format(0x5468617473206D79204B756E67204675, "0128b")
 def AES_decryption(cipher, key):
     # if cipher is text convert it to binary string
     cipher = " ".join(format(ord(c),"b") for c in cipher)
