@@ -77,6 +77,23 @@ def add(A, B):
     C = C[i:]
   return C
 
+def convert_to_number(s):
+  res = 0
+  for char in s:
+    res = res * 256 + ord(char)
+  return res
+
+def convert_to_string(num):
+  res = ""
+  while num > 0:
+    value = num % 256
+    if (65 <= value <= 90) or (97 <= value <= 122) or (42 <= value <= 57):
+      res = chr(value) + res
+    num //= 256
+  return res
+
+
+
 # mult polynomials
 def multiply(A, B):
   C = '0' # result
