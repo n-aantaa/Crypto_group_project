@@ -160,74 +160,62 @@ inverseMatrix = [
 0x0D,0x09,0x0E,0x0B,
 0x0B,0x0D,0x09,0x0E]
 
-# KeySchedule() is the same for encryption and decryption
-# So this is left for Oumar who is doing AES encryption
 def KeySchedule(key):
-    key_size = len(key)
-    assert key_size in [16, 24, 32], "Key must be 128, 192, or 256 bits long"
+  key = format(key,"032x")
+  keyArray = []
+  keyArray.append(key) # key 0
+  w = []
+  word = ""
+  for i in range(0,4):
+      for j in range(i*8,(i+1)*8):
+          word += key[j]
+      w.append(word)
+      word = ""
+  for i in range(0,10): # 11 keys in 128bit and 1 already appended
+      w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+      w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
+      w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
+      w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
+      for j in range((i+1)*4,len(w)):
+          word += w[j]
+      keyArray.append(word)
+      word = ""
+  return keyArray
+# Key Schedule
+# key = k₀ ... K₁₅
+# K is 8bits byte of key
+# W[i] = W[0] ... W[43]
+# W[i] is 32bits word
+# [][][][] [][][][] [][][][] [][][][] Ki each 8bits
+# [ W[0] ] [ W[1] ] [ W[2] ] [ W[3] ] W[i] each 32bits
+# g()XOR  -> XOR  ->  XOR  ->  XOR
+# [ W[4] ] [ W[5] ] [ W[6] ] [ W[7] ] W[i] each 32bits
+# g(W[3]) XOR W[0] = W[4]
+# W[4] XOR W[1] = W[5]
+# W[5] XOR W[2] = W[6]
+# W[6] XOR W[3] = W[7]
 
-    num_words = {16: 44, 24: 52, 32: 60}[key_size]
-    key_words = key_size // 4
-    schedule = []
-
-    # Split the original key into 4-byte words
-    for i in range(key_words):
-        schedule.append([ord(key[4 * i]), ord(key[4 * i + 1]), ord(key[4 * i + 2]), ord(key[4 * i + 3])])
-
-    # Generate the remaining words
-    for i in range(key_words, num_words):
-        temp = schedule[i - 1]
-
-        # Apply g() every key_words number of words
-        if i % key_words == 0:
-            temp = g(temp, i // key_words)
-
-        # Special case for 256-bit keys (substitution on every 8th word)
-        if key_size == 32 and i % key_words == 4:
-            temp = [SBox[b] for b in temp]
-
-        # XOR with the word "key_words" before to get the next word
-        schedule.append([t ^ s for t, s in zip(temp, schedule[i - key_words])])
-
-    # Flatten to a list of bytes
-    return [byte for word in schedule for byte in word]
-
-# Example usage for AES-128
-key = "thisisthekey1234"  # 128-bit key (16 characters)
-key_schedule = KeySchedule(key)
-
-# Display the key schedule as 4-byte words
-for i in range(0, len(key_schedule), 4):
-    print(f"W[{i // 4}]: {key_schedule[i:i + 4]}")
-
-# AES constants and S-Box (replace with actual S-Box values)
-SBox = [0x63, 0x7c, 0x77, ...]  # Simplified representation
-
-def g(word):
-  wa = ""
-  v = []
-  for i in range(len(word)): # splits word with no spaces into 8bits chunks
-    wa += word[i]
-    if(i % 8 == 7):
-      v.append(wa) # add 8 bit chunk to array
-      wa = ""
+rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
+def g(z,round_num):
+  v = [z[i:i+2] for i in range(0,len(z),2)]
   v.append(v[0]) # rotate left
   del v[0]
   result = ""
-  for i in range(len(v)):
-    xy = hex(int(v[i],2))
-    x = int(xy[2],16)
-    y = int(xy[3],16)
-    result += f'{AESSBox[x][y]:08b}'
-    if(i==0):
-      result = int(result) ^ rc[keyScheduleIter]
+  for i in range(0,4):
+      x = int(v[i][0],16)
+      y = int(v[i][1],16)
+      if(i==0):
+          v[i] = AESSBox[x][y] ^ rc[round_num]
+      else:
+          v[i] = AESSBox[x][y]
+      result += format(v[i],"02x")
+  result = int(result,16)
   return result
 # [V₀][V₁][V₂][V₃] rotate left
 # [V₁][V₂][V₃][V₀]
 #  S   S   S   S
 # only S([V₁]) gets XORd with RC[i] result
 # g() result = [ W[4] ]
-rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
 # Round Coefficient 1,...,10
 # RC[i] =
 # RC[1]= x0 =(00000001)2
@@ -236,68 +224,22 @@ rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
 # ...
 # RC[10]= x9 =(00110110)2.
 
-# def g(word, round_num):
-#     # Rotate word bytes to the left
-#     word = word[1:] + word[:1]
-#
-#     # Apply S-Box substitution
-#     word = [SBox[b] for b in word]
-#
-#     # XOR the first byte with the round constant
-#     word[0] ^= Rcon[round_num - 1]
-#
-#     return word
-# # KeyAddition() XOR flips bits right back shouldnt need to change the function at all
-# # So this is left for Oumar who is doing AES encryption
-# SBox = [[0x63, 0x7c, 0x77, ...], ...]
+def KeyAddition(cipher, subKey):
+  c = list(cipher.split(" "))
+  s = list(subKey.split(" "))
+  x = []
+  for i in len(c):
+    x.append(f'{int(c[i],2) ^ int(s[i],2):08b}') # XOR needs binary ints then string format result save to x
+  result = ""
+  for i in x:
+    result += x[i] + " "
+  result = result.rstrip() # gets rid of trailing space
+  return result
+# KeyAddition() XOR keys 8bit bytes to MixCols 8bit bytes result
+# D[][][][] [][][][] [][][][] [][][][]
+# XOR straight down
+# E[][][][] [][][][] [][][][] [][][][]
 
-def ByteSub(state):
-    # Apply S-Box transformation
-    for i in range(len(state)):
-        state[i] = SBox[state[i] // 16][state[i] % 16]
-    return state
-
-def ShiftRow(state):
-    # Shift rows according to the AES standard
-    state = state[:4] + state[5:8] + state[4:5] + state[9:12] + state[8:9] + state[13:] + state[12:13]
-    return state
-
-def MixCol(state):
-
-    def gf_mult(a, b):
-        p = 0
-        hi_bit_set = 0x80
-        modulo = 0x11b
-
-        for _ in range(8):
-            if b & 1:
-                p ^= a
-            hi_bit = a & hi_bit_set
-            a <<= 1
-            if hi_bit:
-                a ^= modulo
-            b >>= 1
-        return p
-
-    def mix_single_col(col):
-        return [
-            gf_mult(2, col[0]) ^ gf_mult(3, col[1]) ^ col[2] ^ col[3],
-            col[0] ^ gf_mult(2, col[1]) ^ gf_mult(3, col[2]) ^ col[3],
-            col[0] ^ col[1] ^ gf_mult(2, col[2]) ^ gf_mult(3, col[3]),
-            gf_mult(3, col[0]) ^ col[1] ^ col[2] ^ gf_mult(2, col[3])
-        ]
-
-    # Mix all columns
-    new_state = []
-    for col in range(0, len(state), 4):
-        new_state.extend(mix_single_col(state[col:col + 4]))
-
-    return new_state
-
-def KeyAddition(state, key_schedule, round_num):
-    # XOR each byte in state with the appropriate subkey
-    start_idx = round_num * 16
-    return [s ^ key for s, key in zip(state, key_schedule[start_idx:start_idx + 16])]
 def InvMixCol(cipher):
   c = list(cipher.split(" "))
   b = []
@@ -337,7 +279,7 @@ def InvShiftRows(cipher):
   del l[16]
   del l[16]
   result = ""
-  for i in l:
+  for i in range(len(l)):
     result += l[i] + " "
   result = result.strip() # gets rid of trailing space
   return result
@@ -351,6 +293,8 @@ def InvByteSub(cipher):
   result = ""
   for c in cipher.split(" "):
     xy = hex(int(c,2))
+    if len(xy) ==3:
+      xy = xy[:2] + '0' + xy[2:]
     x = int(xy[2],16)
     y = int(xy[3],16)
     result += f'{inverseAESSBox[x][y]:08b}' + " "
