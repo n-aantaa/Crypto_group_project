@@ -1,4 +1,3 @@
-
 AESSBox = [
 [0x63,0x7C,0x77,0x7B,0xF2,0x6B,0x6F,0xC5,0x30,0x01,0x67,0x2B,0xFE,0xD7,0xAB,0x76],
 [0xCA,0x82,0xC9,0x7D,0xFA,0x59,0x47,0xF0,0xAD,0xD4,0xA2,0xAF,0x9C,0xA4,0x72,0xC0],
@@ -19,46 +18,43 @@ AESSBox = [
 
 rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
 def g(z,round_num):
-    print(z)
-    v = [z[i:i+2] for i in range(0,len(z),2)]
-    print(v)
-    v.append(v[0]) # rotate left
-    del v[0]
-    print(v)
-    result = ""
-    for i in range(0,4):
-        x = int(v[i][0],16)
-        y = int(v[i][1],16)
-        if(i==0):
-            v[i] = AESSBox[x][y] ^ rc[round_num]
-        else:
-            v[i] = AESSBox[x][y]
-        print(format(v[i],"02x"))
-        result += format(v[i],"02x")
-    result = int(result,16)
-    return result
+  v = [z[i:i+2] for i in range(0,len(z),2)]
+  v.append(v[0]) # rotate left
+  del v[0]
+  result = ""
+  for i in range(0,4):
+      x = int(v[i][0],16)
+      y = int(v[i][1],16)
+      if(i==0):
+          v[i] = AESSBox[x][y] ^ rc[round_num]
+      else:
+          v[i] = AESSBox[x][y]
+      result += format(v[i],"02x")
+  result = int(result,16)
+  return result
 
-key = hex(0x5468617473206D79204B756E67204675)[2:]
-keyArray = []
-keyArray.append(key) # key 0
-w = []
-word = ""
-for i in range(0,4):
-    for j in range(i*8,(i+1)*8):
-        word += key[j]
-    w.append(word)
-    word = ""
-print(w)
-for i in range(0,10): # 11 keys in 128bit and 1 already appended
-    print(i)
-    w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
-    print(w[(i+1)*4])
-    print(w[(i+1)*4 - 3])
-    w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
-    w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
-    w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
-    for j in range((i+1)*4,len(w)):
-        word += w[j]
-    keyArray.append(word)
-    word = ""
-print(keyArray)
+def KeySchedule(key):
+  key = format(key,"032x")
+  keyArray = []
+  keyArray.append(key) # key 0
+  w = []
+  word = ""
+  for i in range(0,4):
+      for j in range(i*8,(i+1)*8):
+          word += key[j]
+      w.append(word)
+      word = ""
+  for i in range(0,10): # 11 keys in 128bit and 1 already appended
+      w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+      w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
+      w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
+      w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
+      for j in range((i+1)*4,len(w)):
+          word += w[j]
+      keyArray.append(word)
+      word = ""
+  return keyArray
+
+# print(KeySchedule(0x5468617473206D79204B756E67204675))
+# AES_decryption(0x54776F204F6E65204E696E652054776F,0x5468617473206D79204B756E67204675, )
+print(KeySchedule(0x5468617473206D79204B756E67204675))
