@@ -89,13 +89,26 @@ def RSA_decryption():
 # So first round of AES doesnt do invMixCol
 
 # compute Key Schedule first then use them in reverse order
-cipher = format(0x29C3505F571420F6402299B31A02D73A,"0128b")
-key = format(0x5468617473206D79204B756E67204675, "0128b")
 def AES_decryption(cipher, key):
-    # if cipher is text convert it to binary string
-    cipher = " ".join(format(ord(c),"b") for c in cipher)
     keySchedule = KeySchedule(key) # should return an array of each subkey
     keySchedule.reverse() # could also just loop thru backwards
+    cipher = bin(cipher)[2:].zfill(128)
+    text = ""
+    for i in range(len(cipher)): # convert cipher and keys to binary strings "11111111 000000000 etc."
+        if(i != 0 and i%8 == 0):
+            text += " " + cipher[i]
+        else:
+            text += cipher[i]
+    cipher = text
+    for i in range(0,len(keySchedule)):
+        keySchedule[i] = bin(int(keySchedule[i],16))[2:].zfill(128)
+        text = ""
+        for j in range(128): # convert cipher and keys to binary strings "11111111 000000000 etc."
+            if(j != 0 and j%8 == 0):
+                text += " " + keySchedule[i][j]
+            else:
+                text += keySchedule[i][j]
+        keySchedule[i] = text
     for i in range(len(keySchedule)-1): # keySchedule length is the # of rounds +1
       if(i==0): # first decryption round doesn't MixCol()
           cipher = KeyAddition(cipher, keySchedule[i])
@@ -109,6 +122,9 @@ def AES_decryption(cipher, key):
     # convert cipher back to text
     cipher = "".join(chr(int(c,2)) for c in cipher.split(" "))
     return cipher
+cipher = 0x29C3505F571420F6402299B31A02D73A
+key = 0x5468617473206D79204B756E67204675
+AES_decryption(cipher,key)
 
 # root = customtkinter.CTk()
 # root.geometry("500x500")
