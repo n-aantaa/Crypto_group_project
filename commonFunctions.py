@@ -159,29 +159,24 @@ inverseMatrix = [
 0x0B,0x0D,0x09,0x0E]
 
 keyScheduleIter = 0
+def g(word,round_num):
+  v = [word[i:i+8] for i in range(0,len(word),8)]
+  v.append(v[0]) # rotate left
+  del v[0]
+  result = ""
+  for i in range(len(v)):
+      xy = "0x{:02x}".format(int(v[i]))
+      x = int(xy[2],16)
+      y = int(xy[3],16)
+      if(i==0):
+          v[i] = AESSBox[x][y] ^ rc[round_num]
+      else:
+          v[i] = AESSBox[x][y]
+      result += format(v[i],"08b")
+  return int(result,2)
 
-def KeySchedule(key):
-  key = "".join(key.split())
-  keyArray = []
-  keyArray.append(key) # key 0
-  w = []
-  word = ""
-  for i in len(key): # splits key with no spaces into 32bits chunks
-    word += key[i]
-    if(i % 32 == 31):
-      w.append(word) # add 32 bit chunk to array
-      word = ""
-  for i in range(0,11): # 11 keys in 128bit
-    keyScheduleIter = i
-    w.append(int(w[i*4]) ^ int(g(w[(i+1)*4 - 1]))) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
-    w.append(int(w[(i+1)*4]) ^ int(w[i+1])) # w[5] = w[4] XOR w[1]
-    w.append(int(w[(i+1)*4 + 1]) ^ int(w[i+2])) # w[6] = w[5] XOR w[2]
-    w.append(int(w[(i+1)*4 + 2]) ^ int(w[i+3])) # w[7] = w[6] XOR w[3]
-    for i in range((i+1)*4,len(w)):
-      word += w[i]
-    keyArray.append(word)
-    word = ""
-  return keyArray
+
+
 # Key Schedule
 # key = k₀ ... K₁₅
 # K is 8bits byte of key
@@ -196,25 +191,8 @@ def KeySchedule(key):
 # W[5] XOR W[2] = W[6]
 # W[6] XOR W[3] = W[7]
 
-def g(word):
-  wa = ""
-  v = []
-  for i in range(len(word)): # splits word with no spaces into 8bits chunks
-    wa += word[i]
-    if(i % 8 == 7):
-      v.append(wa) # add 8 bit chunk to array
-      wa = ""
-  v.append(v[0]) # rotate left
-  del v[0]
-  result = ""
-  for i in range(len(v)):
-    xy = hex(int(v[i],2))
-    x = int(xy[2],16)
-    y = int(xy[3],16)
-    result += f'{AESSBox[x][y]:08b}'
-    if(i==0):
-      result = int(result) ^ rc[keyScheduleIter]
-  return result
+
+
 # [V₀][V₁][V₂][V₃] rotate left
 # [V₁][V₂][V₃][V₀]
 #  S   S   S   S
@@ -245,6 +223,24 @@ def KeyAddition(cipher, subKey):
 # XOR straight down
 # E[][][][] [][][][] [][][][] [][][][]
 
+def KeySchedule(key):
+  key = "".join(key.split())
+  keyArray = []
+  keyArray.append(key)  # key 0
+  w = [key[i:i + 32] for i in range(0, len(key), 32)]
+  word = ""
+  for i in range(0, 10):  # 11 keys in 128bit and 1 already appended
+    w.append(format(int(w[i * 4], 2) ^ g(w[(i + 1) * 4 - 1], i), "032b"))  # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+    w.append(format(int(w[(i + 1) * 4], 2) ^ int(w[i + 1], 2), "032b"))  # w[5] = w[4] XOR w[1]
+    w.append(format(int(w[(i + 1) * 4 + 1], 2) ^ int(w[i + 2], 2), "032b"))  # w[6] = w[5] XOR w[2]
+    w.append(format(int(w[(i + 1) * 4 + 2], 2) ^ int(w[i + 3], 2), "032b"))  # w[7] = w[6] XOR w[3]
+    for j in range((i + 1) * 4, (i + 1) * 4 + 4):
+      word += w[j]
+    keyArray.append(word)
+    word = ""
+  return keyArray
+
+
 def InvMixCol(cipher):
   c = list(cipher.split(" "))
   b = []
@@ -261,6 +257,7 @@ def InvMixCol(cipher):
     result += b[i] + " "
   result = result.rstrip() # gets rid of trailing space
   return result
+
 # B0   0E 0B 0D 09   C0
 # B1 = 09 0E 0B 0D * C1
 # B2   0D 09 0E 0B   C2
@@ -286,7 +283,9 @@ def InvShiftRows(cipher):
   for i in l:
     result += l[i] + " "
   result = result.rstrip() # gets rid of trailing space
+  print(result)
   return result
+
 # need to reverse all the indexes swap
 # [0 4 8 12] to     [0 4 8 12] no change
 # [1 5 9 13] to     [13 1 5 9] right shift 1
