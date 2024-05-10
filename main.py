@@ -110,14 +110,14 @@ def AES_decryption(cipher, key):
             else:
                 text += keySchedule[i][j]
         keySchedule[i] = text
-    cipher = KeyAddition(cipher, keySchedule[i])
-    print(cipher)
+    cipher = KeyAddition(cipher, keySchedule[0])
+    # print(cipher)
     cipher = InvShiftRows(cipher)
     # print(cipher)
     cipher = InvByteSub(cipher)
     # print(cipher)
     for i in range(1,10): # keySchedule length is the # of rounds +1
-        # print(cipher)
+        # print(i)
         cipher = KeyAddition(cipher, keySchedule[i])
         # print(cipher)
         cipher = InvMixCol(cipher)
@@ -133,7 +133,7 @@ def AES_decryption(cipher, key):
     return cipher
 cipher = 0x29C3505F571420F6402299B31A02D73A
 key = 0x5468617473206D79204B756E67204675
-AES_decryption(cipher,key)
+print(AES_decryption(cipher,key))
 
 # root = customtkinter.CTk()
 # root.geometry("500x500")
