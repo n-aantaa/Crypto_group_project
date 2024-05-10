@@ -109,25 +109,71 @@ def AES_encryption(plain_text, key):
     state = KeyAddition(state, key_schedule, num_rounds)
 
 
+# def AES_decryption(cipher, key):
+#     # if cipher is text convert it to binary string
+#     cipher = " ".join(format(ord(c),"b") for c in cipher)
+#
+#     keySchedule = list(KeySchedule(key)) # should return an array of each subkey
+#     keySchedule.reverse() # could also just loop thru backwards
+#     for i in range(len(keySchedule)-1): # keySchedule length is the # of rounds +1
+#       if(i==0): # first decryption round doesn't MixCol()
+#           keySchedule[i] = " ".join(format(ord(c),"b") for c in cipher)
+#
+#           cipher = KeyAddition(cipher, keySchedule[i])
+#           cipher = InvShiftRows(cipher)
+#           cipher = InvByteSub(cipher)
+#       cipher = KeyAddition(cipher, keySchedule[i])
+#       cipher = InvMixCol(cipher)
+#       cipher = InvShiftRows(cipher)
+#       cipher = InvByteSub(cipher)
+#     cipher = KeyAddition(cipher, keySchedule[len(keySchedule)-1])
+#     # convert cipher back to text
+#     cipher = "".join(chr(int(c,2)) for c in cipher.split(" "))
+#     return cipher
+
+# compute Key Schedule first then use them in reverse order
 def AES_decryption(cipher, key):
-    # if cipher is text convert it to binary string
-    cipher = " ".join(format(ord(c),"b") for c in cipher)
-
-    keySchedule = list(KeySchedule(key)) # should return an array of each subkey
+    keySchedule = KeySchedule(key) # should return an array of each subkey
     keySchedule.reverse() # could also just loop thru backwards
-    for i in range(len(keySchedule)-1): # keySchedule length is the # of rounds +1
-      if(i==0): # first decryption round doesn't MixCol()
-          keySchedule[i] = " ".join(format(ord(c),"b") for c in cipher)
-
-          cipher = KeyAddition(cipher, keySchedule[i])
-          cipher = InvShiftRows(cipher)
-          cipher = InvByteSub(cipher)
-      cipher = KeyAddition(cipher, keySchedule[i])
-      cipher = InvMixCol(cipher)
-      cipher = InvShiftRows(cipher)
-      cipher = InvByteSub(cipher)
+    cipher = bin(cipher)[2:].zfill(128)
+    text = ""
+    for i in range(len(cipher)): # convert cipher and keys to binary strings "11111111 000000000 etc."
+        if(i != 0 and i%8 == 0):
+            text += " " + cipher[i]
+        else:
+            text += cipher[i]
+    cipher = text
+    # print(cipher)
+    for i in range(0,len(keySchedule)):
+        keySchedule[i] = bin(int(keySchedule[i],16))[2:].zfill(128)
+        text = ""
+        for j in range(128): # convert cipher and keys to binary strings "11111111 000000000 etc."
+            if(j != 0 and j%8 == 0):
+                text += " " + keySchedule[i][j]
+            else:
+                text += keySchedule[i][j]
+        keySchedule[i] = text
+    cipher = KeyAddition(cipher, keySchedule[0])
+    # print(cipher)
+    cipher = InvShiftRows(cipher)
+    # print(cipher)
+    cipher = InvByteSub(cipher)
+    # print(cipher)
+    for i in range(1,10): # keySchedule length is the # of rounds +1
+        # print(i)
+        cipher = KeyAddition(cipher, keySchedule[i])
+        # print(cipher)
+        cipher = InvMixCol(cipher)
+        # print(cipher)
+        cipher = InvShiftRows(cipher)
+        # print(cipher)
+        cipher = InvByteSub(cipher)
+        # print(cipher)
     cipher = KeyAddition(cipher, keySchedule[len(keySchedule)-1])
+    # print(cipher)
     # convert cipher back to text
-    cipher = "".join(chr(int(c,2)) for c in cipher.split(" "))
+    # cipher = "".join(chr(int(c,2)) for c in cipher.split(" "))
     return cipher
-
+cipher = 0x29C3505F571420F6402299B31A02D73A
+key = 0x5468617473206D79204B756E67204675
+print(AES_decryption(cipher,key))
