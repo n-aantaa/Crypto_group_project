@@ -30,7 +30,6 @@ def fast_raise_power_book(x,n,p):
       result = (result * x) % p
   return result
 
-
 def my_eea(r0,r1):
   #Initialize data
   s0=1
@@ -78,19 +77,28 @@ def add(A, B):
   return C
 
 def convert_to_number(s):
+  #string to number
   res = 0
   for char in s:
     res = res * 256 + ord(char)
   return res
 
 def convert_to_string(num):
-  res = ""
-  while num > 0:
-    value = num % 256
-    if (65 <= value <= 90) or (97 <= value <= 122) or (42 <= value <= 57):
-      res = chr(value) + res
-    num //= 256
-  return res
+    # Number to string
+    res = ""
+    # Convert the number to a string
+    while num > 0:
+        # Get the last digit of the number
+        digit = num % 52  # 52 = 26 (uppercase letters) + 26 (lowercase letters)
+        if digit < 26:
+            # Convert digit to uppercase letter
+            res = chr(ord('A') + digit) + res
+        else:
+            # Convert digit to lowercase letter
+            res = chr(ord('a') + digit - 26) + res
+        # Remove the last digit from the number
+        num //= 52
+    return res
 
 
 
@@ -228,10 +236,10 @@ def KeyAddition(cipher, subKey):
   c = list(cipher.split(" "))
   s = list(subKey.split(" "))
   x = []
-  for i in len(c):
+  for i in range(len(c)):
     x.append(f'{int(c[i],2) ^ int(s[i],2):08b}') # XOR needs binary ints then string format result save to x
   result = ""
-  for i in x:
+  for i in range(len(x)):
     result += x[i] + " "
   result = result.rstrip() # gets rid of trailing space
   return result
