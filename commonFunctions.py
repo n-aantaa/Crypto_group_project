@@ -1,3 +1,5 @@
+import math
+import secrets
 def inverse(r0,r1):
   s0=1
   s1=0
@@ -27,7 +29,6 @@ def fast_raise_power_book(x,n,p):
     if nb[i] == '1':
       result = (result * x) % p
   return result
-
 
 def my_eea(r0,r1):
   #Initialize data
@@ -76,19 +77,28 @@ def add(A, B):
   return C
 
 def convert_to_number(s):
+  #string to number
   res = 0
   for char in s:
     res = res * 256 + ord(char)
   return res
 
 def convert_to_string(num):
-  res = ""
-  while num > 0:
-    value = num % 256
-    if (65 <= value <= 90) or (97 <= value <= 122) or (42 <= value <= 57):
-      res = chr(value) + res
-    num //= 256
-  return res
+    # Number to string
+    res = ""
+    # Convert the number to a string
+    while num > 0:
+        # Get the last digit of the number
+        digit = num % 52  # 52 = 26 (uppercase letters) + 26 (lowercase letters)
+        if digit < 26:
+            # Convert digit to uppercase letter
+            res = chr(ord('A') + digit) + res
+        else:
+            # Convert digit to lowercase letter
+            res = chr(ord('a') + digit - 26) + res
+        # Remove the last digit from the number
+        num //= 52
+    return res
 
 
 
@@ -303,3 +313,4 @@ def InvByteSub(cipher):
   result = result.strip() # gets rid of trailing space
   return result
 # apply each byte to inverseAESSBox
+

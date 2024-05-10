@@ -8,7 +8,7 @@ class MainApplication(tk.Tk):
         super().__init__()
 
         self.title("Crypto Group Project")
-        self.geometry("400x400")
+        self.geometry("1024x1000")
 
         self.container = tk.Frame(self)
         self.container.pack(fill="both", expand=True)
@@ -52,7 +52,7 @@ class RSAPage(tk.Frame):
         self.key_size_var = tk.StringVar()
         key_size_label = tk.Label(self, text="Select Key Size:")
         key_size_label.pack()
-        key_size_menu = ttk.Combobox(self, textvariable=self.key_size_var, values=["1024", "2048", "4096"])
+        key_size_menu = ttk.Combobox(self, textvariable=self.key_size_var, values=["512", "1024", "2048"])
         key_size_menu.pack()
 
         self.message_entry = tk.Entry(self, width=30)
