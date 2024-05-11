@@ -30,6 +30,7 @@ def fast_raise_power_book(x,n,p):
       result = (result * x) % p
   return result
 
+
 def my_eea(r0,r1):
   #Initialize data
   s0=1
@@ -168,7 +169,27 @@ inverseMatrix = [
 0x0D,0x09,0x0E,0x0B,
 0x0B,0x0D,0x09,0x0E]
 
-
+def KeySchedule(key):
+  key = format(key,"032x")
+  keyArray = []
+  keyArray.append(key) # key 0
+  w = []
+  word = ""
+  for i in range(0,4):
+      for j in range(i*8,(i+1)*8):
+          word += key[j]
+      w.append(word)
+      word = ""
+  for i in range(0,10): # 11 keys in 128bit and 1 already appended
+      w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
+      w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
+      w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
+      w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
+      for j in range((i+1)*4,len(w)):
+          word += w[j]
+      keyArray.append(word)
+      word = ""
+  return keyArray
 # Key Schedule
 # key = k₀ ... K₁₅
 # K is 8bits byte of key
@@ -277,22 +298,28 @@ def InvMixCol(cipher):
 # Additions in the vector–matrix multiplication are bitwise XORs.
 
 def InvShiftRows(cipher):
-  l = list(cipher.split(" "))
-  l.insert(4,l[7]) #insert pretty much right shifts once
-  del l[8] # delete the original l[7] which is now l[8]
-  l.insert(8,l[11]) # right shift twice
-  l.insert(8,l[11])
-  del l[12] # delete values shifted past row 3
-  del l[12]
-  l.insert(12,l[15]) # right shift 3 times
-  l.insert(12,l[15])
-  l.insert(12,l[15])
-  del l[16] # delete values shifter past row 4
-  del l[16]
-  del l[16]
   result = ""
-  for i in range(len(l)):
-    result += l[i] + " "
+  l = list(cipher.split(" "))
+  x=[]
+  x.append(l[0])
+  x.append(l[13])
+  x.append(l[10])
+  x.append(l[7])
+  x.append(l[4])
+  x.append(l[1])
+  x.append(l[14])
+  x.append(l[11])
+  x.append(l[8])
+  x.append(l[5])
+  x.append(l[2])
+  x.append(l[15])
+  x.append(l[12])
+  x.append(l[9])
+  x.append(l[6])
+  x.append(l[3])
+  result = ""
+  for i in range(len(x)):
+    result += x[i] + " "
   result = result.rstrip() # gets rid of trailing space
   return result
 # need to reverse all the indexes swap
@@ -302,14 +329,13 @@ def InvShiftRows(cipher):
 # [3 7 11 15] to    [7 11 15 3] right shift 3
 
 def InvByteSub(cipher):
+  l = list(cipher.split(" "))
   result = ""
-  for c in cipher.split(" "):
-    xy = hex(int(c,2))
-    if len(xy) ==3:
-      xy = xy[:2] + '0' + xy[2:]
-    x = int(xy[2],16)
-    y = int(xy[3],16)
-    result += f'{inverseAESSBox[x][y]:08b}' + " "
+  for i in range(len(l)):
+    xy = format(int(l[i],2), "02x")
+    x = int(xy[0],16)
+    y = int(xy[1],16)
+    result += format(inverseAESSBox[x][y], "08b") + " "
   result = result.strip() # gets rid of trailing space
   return result
 # apply each byte to inverseAESSBox

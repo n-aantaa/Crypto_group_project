@@ -1,4 +1,3 @@
-
 AESSBox = [
 [0x63,0x7C,0x77,0x7B,0xF2,0x6B,0x6F,0xC5,0x30,0x01,0x67,0x2B,0xFE,0xD7,0xAB,0x76],
 [0xCA,0x82,0xC9,0x7D,0xFA,0x59,0x47,0xF0,0xAD,0xD4,0xA2,0xAF,0x9C,0xA4,0x72,0xC0],
@@ -17,48 +16,19 @@ AESSBox = [
 [0xE1,0xF8,0x98,0x11,0x69,0xD9,0x8E,0x94,0x9B,0x1E,0x87,0xE9,0xCE,0x55,0x28,0xDF],
 [0x8C,0xA1,0x89,0x0D,0xBF,0xE6,0x42,0x68,0x41,0x99,0x2D,0x0F,0xB0,0x54,0xBB,0x16]]
 
-rc = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36]
-def g(z,round_num):
-    print(z)
-    v = [z[i:i+2] for i in range(0,len(z),2)]
-    print(v)
-    v.append(v[0]) # rotate left
-    del v[0]
-    print(v)
+def ByteSub(cipher):
     result = ""
-    for i in range(0,4):
-        x = int(v[i][0],16)
-        y = int(v[i][1],16)
-        if(i==0):
-            v[i] = AESSBox[x][y] ^ rc[round_num]
-        else:
-            v[i] = AESSBox[x][y]
-        print(format(v[i],"02x"))
-        result += format(v[i],"02x")
-    result = int(result,16)
+    for c in cipher.split(" "):
+        # Convert binary string to hexadecimal
+        xy = hex(int(c,16))[2:].zfill(2)
+        # Extract the row (x) and column (y) indices for the S-box
+        x = int(xy[0], 16)  # Get the higher nibble for the row index
+        y = int(xy[1], 16)  # Get the lower nibble for the column index
+        # Apply the S-box substitution and convert the result back to binary
+        result += format(AESSBox[x][y], "02x") + " "
+    # Strip the trailing space from the final result string
+    result = result.strip()
     return result
 
-key = hex(0x5468617473206D79204B756E67204675)[2:]
-keyArray = []
-keyArray.append(key) # key 0
-w = []
-word = ""
-for i in range(0,4):
-    for j in range(i*8,(i+1)*8):
-        word += key[j]
-    w.append(word)
-    word = ""
-print(w)
-for i in range(0,10): # 11 keys in 128bit and 1 already appended
-    print(i)
-    w.append(format(int(w[i*4],16) ^ g(w[(i+1)*4 - 1],i),"08x")) # i.e. i=0 -> w[4] = w[0] XOR g(w[3])
-    print(w[(i+1)*4])
-    print(w[(i+1)*4 - 3])
-    w.append(format(int(w[(i+1)*4],16) ^ int(w[(i+1)*4 - 3],16),"08x")) # w[5] = w[4] XOR w[1]
-    w.append(format(int(w[(i+1)*4 + 1],16) ^ int(w[(i+1)*4 - 2],16),"08x")) # w[6] = w[5] XOR w[2]
-    w.append(format(int(w[(i+1)*4 + 2],16) ^ int(w[(i+1)*4 - 1],16),"08x")) # w[7] = w[6] XOR w[3]
-    for j in range((i+1)*4,len(w)):
-        word += w[j]
-    keyArray.append(word)
-    word = ""
-print(keyArray)
+cipher = "00 1f 0e 54 3c 4e 08 59 6e 22 1b 0b 47 74 31 1a"
+print(ByteSub(cipher))
