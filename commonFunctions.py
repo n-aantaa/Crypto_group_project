@@ -237,7 +237,7 @@ def KeyAddition(cipher, subKey):
   s = list(subKey.split(" "))
   x = []
   for i in range(len(c)):
-    x.append(f'{int(c[i],2) ^ int(s[i],2):08b}') # XOR needs binary ints then string format result save to x
+    x.append(format(int(c[i],2) ^ int(s[i],2), "08b")) # XOR needs binary ints then string format result save to x
   result = ""
   for i in range(len(x)):
     result += x[i] + " "
@@ -252,15 +252,15 @@ def InvMixCol(cipher):
   c = list(cipher.split(" "))
   b = []
   for i in range(0,4):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[0])),mod(multiply(c[i],inverseMatrix[1]))),mod(multiply(c[i],inverseMatrix[2]))),mod(multiply(c[i],inverseMatrix[3])))
+    b[i] = add(add(mod(multiply(c[i],format(inverseMatrix[0], "08b"))),mod(multiply(c[i],format(inverseMatrix[1], "08b")))),add(mod(multiply(c[i],format(inverseMatrix[2], "08b"))),mod(multiply(c[i],format(inverseMatrix[3], "08b")))))
   for i in range(4,8):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[4])),mod(multiply(c[i],inverseMatrix[5]))),mod(multiply(c[i],inverseMatrix[6]))),mod(multiply(c[i],inverseMatrix[7])))
+    b[i] = add(add(mod(multiply(c[i],format(inverseMatrix[4], "08b"))),mod(multiply(c[i],format(inverseMatrix[5], "08b")))),add(mod(multiply(c[i],format(inverseMatrix[6], "08b"))),mod(multiply(c[8],format(inverseMatrix[7], "08b")))))
   for i in range(8,12):
-    b[i] = add(add(add(mod(multiply(c[i],inverseMatrix[8])),mod(multiply(c[i],inverseMatrix[9]))),mod(multiply(c[i],inverseMatrix[10]))),mod(multiply(c[i],inverseMatrix[11])))
+    b[i] = add(add(mod(multiply(c[i],format(inverseMatrix[8], "08b"))),mod(multiply(c[i],format(inverseMatrix[9], "08b")))),add(mod(multiply(c[i],format(inverseMatrix[10], "08b"))),mod(multiply(c[i],format(inverseMatrix[11], "08b")))))
   for i in range(12,16):
-    b[i] = add(add(mod(multiply(c[i],f'{inverseMatrix[12]:08b}')),mod(multiply(c[i],f'{inverseMatrix[13]:08b}'))),add(mod(multiply(c[i],f'{inverseMatrix[14]:08b}')),mod(multiply(c[i],f'{inverseMatrix[15]:08b}'))))
+    b[i] = add(add(mod(multiply(c[i],format(inverseMatrix[12], "08b"))),mod(multiply(c[i],format(inverseMatrix[13], "08b")))),add(mod(multiply(c[i],format(inverseMatrix[14], "08b"))),mod(multiply(c[i],format(inverseMatrix[15], "08b")))))
   result = ""
-  for i in b:
+  for i in range(len(b)):
     result += b[i] + " "
   result = result.rstrip() # gets rid of trailing space
   return result
@@ -273,23 +273,29 @@ def InvMixCol(cipher):
 # Additions in the vector–matrix multiplication are bitwise XORs.
 
 def InvShiftRows(cipher):
-  l = list(cipher.split(" "))
-  l.insert(4,l[7]) #insert pretty much right shifts once
-  del l[8] # delete the original l[7] which is now l[8]
-  l.insert(8,l[11]) # right shift twice
-  l.insert(8,l[11])
-  del l[12] # delete values shifted past row 3
-  del l[12]
-  l.insert(12,l[15]) # right shift 3 times
-  l.insert(12,l[15])
-  l.insert(12,l[15])
-  del l[16] # delete values shifter past row 4
-  del l[16]
-  del l[16]
   result = ""
-  for i in range(len(l)):
-    result += l[i] + " "
-  result = result.strip() # gets rid of trailing space
+  l = list(cipher.split(" "))
+  x=[]
+  x.append(l[0])
+  x.append(l[13])
+  x.append(l[10])
+  x.append(l[7])
+  x.append(l[4])
+  x.append(l[1])
+  x.append(l[14])
+  x.append(l[11])
+  x.append(l[8])
+  x.append(l[5])
+  x.append(l[2])
+  x.append(l[15])
+  x.append(l[12])
+  x.append(l[9])
+  x.append(l[6])
+  x.append(l[3])
+  result = ""
+  for i in range(len(x)):
+    result += x[i] + " "
+  result = result.rstrip() # gets rid of trailing space
   return result
 # need to reverse all the indexes swap
 # [0 4 8 12] to     [0 4 8 12] no change
@@ -298,14 +304,13 @@ def InvShiftRows(cipher):
 # [3 7 11 15] to    [7 11 15 3] right shift 3
 
 def InvByteSub(cipher):
+  l = list(cipher.split(" "))
   result = ""
-  for c in cipher.split(" "):
-    xy = hex(int(c,2))
-    if len(xy) ==3:
-      xy = xy[:2] + '0' + xy[2:]
-    x = int(xy[2],16)
-    y = int(xy[3],16)
-    result += f'{inverseAESSBox[x][y]:08b}' + " "
+  for i in range(len(l)):
+    xy = format(int(l[i],2), "02x")
+    x = int(xy[0],16)
+    y = int(xy[1],16)
+    result += format(inverseAESSBox[x][y], "08b") + " "
   result = result.strip() # gets rid of trailing space
   return result
 # apply each byte to inverseAESSBox
